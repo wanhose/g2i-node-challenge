@@ -16,7 +16,13 @@ type PostAcronymBody = {
   meaning: string;
 };
 
-/* eslint-disable @typescript-eslint/no-empty-function */
+type UpdateAcronymBody = {
+  meaning: string;
+};
+
+type UpdateAcronymParams = {
+  acronym: string;
+};
 
 export default (
   server: FastifyInstance,
@@ -140,7 +146,51 @@ export default (
     }
   );
 
-  server.put("/acronym/:acronym", (request, reply) => {});
+  server.put<{ Body: UpdateAcronymBody; Params: UpdateAcronymParams }>(
+    "/acronym/:acronym",
+    {
+      schema: {
+        body: {
+          properties: {
+            meaning: {
+              type: "string",
+            },
+          },
+          required: ["meaning"],
+          type: "object",
+        },
+        params: {
+          properties: {
+            acronym: {
+              type: "string",
+            },
+          },
+          required: ["acronym"],
+          type: "object",
+        },
+      },
+    },
+    async (request, reply) => {
+      const { acronym } = request.params;
+      const { meaning } = request.body;
+
+      const match = await prisma.acronym.findFirst({ where: { acronym } });
+
+      if (!match)
+        reply.code(400).send(new Error("Ooops! Acronym doesn't exist!"));
+
+      const result = await prisma.acronym.update({
+        data: {
+          meaning,
+        },
+        where: {
+          acronym,
+        },
+      });
+
+      reply.send({ result });
+    }
+  );
 
   done();
 };
