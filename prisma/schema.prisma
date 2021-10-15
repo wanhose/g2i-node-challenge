@@ -8,7 +8,10 @@ generator client {
 }
 
 model Acronym {
-  id      String @id @default(uuid())
-  acronym String @unique
-  meaning String
+  id        String    @id @default(uuid())
+  acronym   String    @unique
+  meaning   String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  updatedAt DateTime  @default(now())
 }
