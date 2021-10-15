@@ -1,6 +1,10 @@
 import { FastifyInstance, RouteShorthandOptions } from "fastify";
 import prisma from "prisma/client";
 
+type DeleteAcronymParams = {
+  acronym: string;
+};
+
 type GetAcronymQuerystring = {
   from: number;
   limit: number;
@@ -19,7 +23,33 @@ export default (
   options: RouteShorthandOptions,
   done: () => void
 ) => {
-  server.delete("/acronym/:acronym", (request, reply) => {});
+  server.delete<{ Params: DeleteAcronymParams }>(
+    "/acronym/:acronym",
+    {
+      schema: {
+        params: {
+          properties: {
+            acronym: {
+              type: "string",
+            },
+          },
+          required: ["acronym"],
+          type: "object",
+        },
+      },
+    },
+    async (request, reply) => {
+      const { acronym } = request.params;
+      const match = await prisma.acronym.findFirst({ where: { acronym } });
+
+      if (!match)
+        reply.code(400).send(new Error("Ooops! Acronym doesn't exist!"));
+
+      await prisma.acronym.delete({ where: { acronym } });
+
+      reply.send({ success: true });
+    }
+  );
 
   server.get<{ Querystring: GetAcronymQuerystring }>(
     "/acronym",
