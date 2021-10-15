@@ -2,7 +2,7 @@ import fastify from "fastify";
 import v1AcronymRoutes from "routes/v1/acronym";
 
 const port = process.env.PORT ?? 8080;
-const server = fastify();
+const server = fastify({ logger: true });
 
 server.register(v1AcronymRoutes, { prefix: "/rest/v1" });
 
