@@ -1,0 +1,14 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Acronym {
+  id      String @id @default(uuid())
+  acronym String @unique
+  meaning String
+}
