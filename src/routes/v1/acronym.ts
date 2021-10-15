@@ -33,6 +33,15 @@ export default (
     "/acronym/:acronym",
     {
       schema: {
+        headers: {
+          properties: {
+            authorization: {
+              type: "string",
+            },
+          },
+          required: ["authorization"],
+          type: "object",
+        },
         params: {
           properties: {
             acronym: {
@@ -48,8 +57,10 @@ export default (
       const { acronym } = request.params;
       const match = await prisma.acronym.findFirst({ where: { acronym } });
 
-      if (!match)
+      if (!match) {
         reply.code(400).send(new Error("Ooops! Acronym doesn't exist!"));
+        return;
+      }
 
       await prisma.acronym.delete({ where: { acronym } });
 
@@ -116,6 +127,15 @@ export default (
     {
       schema: {
         body: {
+          headers: {
+            properties: {
+              authorization: {
+                type: "string",
+              },
+            },
+            required: ["authorization"],
+            type: "object",
+          },
           properties: {
             acronym: {
               type: "string",
@@ -176,8 +196,10 @@ export default (
 
       const match = await prisma.acronym.findFirst({ where: { acronym } });
 
-      if (!match)
+      if (!match) {
         reply.code(400).send(new Error("Ooops! Acronym doesn't exist!"));
+        return;
+      }
 
       const result = await prisma.acronym.update({
         data: {
