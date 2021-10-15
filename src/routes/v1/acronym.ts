@@ -7,6 +7,11 @@ type GetAcronymQuerystring = {
   search: string;
 };
 
+type PostAcronymBody = {
+  acronym: string;
+  meaning: string;
+};
+
 /* eslint-disable @typescript-eslint/no-empty-function */
 
 export default (
@@ -21,7 +26,6 @@ export default (
     {
       schema: {
         querystring: {
-          type: "object",
           properties: {
             from: {
               type: "integer",
@@ -34,6 +38,7 @@ export default (
             },
           },
           required: ["from", "limit", "search"],
+          type: "object",
         },
       },
     },
@@ -70,7 +75,40 @@ export default (
     }
   );
 
-  server.post("/acronym", (request, reply) => {});
+  server.post<{ Body: PostAcronymBody }>(
+    "/acronym",
+    {
+      schema: {
+        body: {
+          properties: {
+            acronym: {
+              type: "string",
+            },
+            meaning: {
+              type: "string",
+            },
+          },
+          required: ["acronym", "meaning"],
+          type: "object",
+        },
+      },
+    },
+    async (request, reply) => {
+      const { acronym, meaning } = request.body;
+      const match = await prisma.acronym.findFirst({ where: { acronym } });
+
+      if (match) reply.code(400).send(new Error("Ooops! Duplicate acronym!"));
+
+      const result = await prisma.acronym.create({
+        data: {
+          acronym,
+          meaning,
+        },
+      });
+
+      reply.send({ result });
+    }
+  );
 
   server.put("/acronym/:acronym", (request, reply) => {});
 
